@@ -91,63 +91,6 @@ export default function Meeting() {
     startCall();
 
     // SOCKET EVENTS
-
-    // 1. Existing participants see a New User join
-    socket.on("user-connected", (userSocketId) => {
-      console.log("User Connected:", userSocketId);
-      connectToNewUser(userSocketId, localStreamRef.current);
-    });
-
-    // 2. New User receives an Offer from an existing participant
-    socket.on("offer", async (payload) => {
-      console.log("Received Offer from:", payload.caller);
-      await handleReceiveOffer(
-        payload.offer,
-        payload.caller,
-        localStreamRef.current,
-      );
-    });
-
-    // 3. Sender receives Answer from the New User
-    socket.on("answer", (payload) => {
-      console.log("Received Answer from:", payload.caller);
-      const peer = peersRef.current[payload.caller];
-      if (peer) {
-        peer
-          .setRemoteDescription(new RTCSessionDescription(payload.answer))
-          .catch((e) => console.error(e));
-      }
-    });
-
-    // 4. Handle ICE Candidates
-    socket.on("ice-candidate", (payload) => {
-      const peer = peersRef.current[payload.caller];
-      if (peer && payload.candidate) {
-        peer
-          .addIceCandidate(new RTCIceCandidate(payload.candidate))
-          .catch((e) => console.error(e));
-      }
-    });
-
-    // 5. User Disconnected
-    socket.on("user-disconnected", (userSocketId) => {
-      if (peersRef.current[userSocketId]) {
-        peersRef.current[userSocketId].close();
-        delete peersRef.current[userSocketId];
-      }
-      setPeers((prev) => prev.filter((p) => p.socketId !== userSocketId));
-    });
-
-    return () => {
-      socket.off("user-connected");
-      socket.off("offer");
-      socket.off("answer");
-      socket.off("ice-candidate");
-      socket.off("user-disconnected");
-      // We generally don't stop the stream here to avoid flickering logic in dev mode, but strictly we should.
-    };
-  }, [roomId]);
-
   // --- Helper Functions ---
 
   function createPeerConnection(targetSocketId) {
@@ -220,6 +163,63 @@ export default function Meeting() {
       answer,
     });
   }
+
+    // 1. Existing participants see a New User join
+    socket.on("user-connected", (userSocketId) => {
+      console.log("User Connected:", userSocketId);
+      connectToNewUser(userSocketId, localStreamRef.current);
+    });
+
+    // 2. New User receives an Offer from an existing participant
+    socket.on("offer", async (payload) => {
+      console.log("Received Offer from:", payload.caller);
+      await handleReceiveOffer(
+        payload.offer,
+        payload.caller,
+        localStreamRef.current,
+      );
+    });
+
+    // 3. Sender receives Answer from the New User
+    socket.on("answer", (payload) => {
+      console.log("Received Answer from:", payload.caller);
+      const peer = peersRef.current[payload.caller];
+      if (peer) {
+        peer
+          .setRemoteDescription(new RTCSessionDescription(payload.answer))
+          .catch((e) => console.error(e));
+      }
+    });
+
+    // 4. Handle ICE Candidates
+    socket.on("ice-candidate", (payload) => {
+      const peer = peersRef.current[payload.caller];
+      if (peer && payload.candidate) {
+        peer
+          .addIceCandidate(new RTCIceCandidate(payload.candidate))
+          .catch((e) => console.error(e));
+      }
+    });
+
+    // 5. User Disconnected
+    socket.on("user-disconnected", (userSocketId) => {
+      if (peersRef.current[userSocketId]) {
+        peersRef.current[userSocketId].close();
+        delete peersRef.current[userSocketId];
+      }
+      setPeers((prev) => prev.filter((p) => p.socketId !== userSocketId));
+    });
+
+    return () => {
+      socket.off("user-connected");
+      socket.off("offer");
+      socket.off("answer");
+      socket.off("ice-candidate");
+      socket.off("user-disconnected");
+      // We generally don't stop the stream here to avoid flickering logic in dev mode, but strictly we should.
+    };
+  }, [roomId]);
+
 
   // Toggle Controls
   const toggleMic = () => {
