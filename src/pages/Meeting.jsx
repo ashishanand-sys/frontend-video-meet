@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import { useParams, useNavigate } from "react-router-dom";
 
-const socket = io("http://localhost:5000");
+const socket = io("https://backend-video-meet-1.onrender.com");
 
 // A simple Video component to display a stream
 const VideoPlayer = ({ stream, muted = false, label = "User" }) => {

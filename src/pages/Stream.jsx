@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { io } from "socket.io-client";
 import { useParams } from "react-router-dom";
 
-const socket = io("http://localhost:5000");
+const socket = io("https://backend-video-meet-1.onrender.com");
 
 export default function Stream() {
   const { streamId } = useParams();
